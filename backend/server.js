@@ -31,8 +31,8 @@ app.post("/summarize", async (req, res) => {
   try{
     // Call Hugging Face Inference API
    const hfResponse = await hfClient.summarization({
-  model: "facebook/bart-large-cnn",
-  inputs: text,
+  model: "sshleifer/distilbart-cnn-12-6",
+  inputs: text.slice(0, 1000),
   parameters:{
     max_length:150,
     min_length:30
@@ -40,7 +40,14 @@ app.post("/summarize", async (req, res) => {
 });
     console.log("HF response:", hfResponse);
     // Hugging Face returns array with one result
-    const summary = hfResponse[0]?.summary_text || "Unable to summarize";
+    let summary;
+if (Array.isArray(hfResponse)) {
+  summary = hfResponse[0]?.summary_text;
+} else {
+  summary = hfResponse?.summary_text;
+}
+
+summary = summary || "Unable to summarize";
 
     // Save to DB
     const newSummary = new Summary({ text, summary });
