@@ -4,14 +4,20 @@ import axios from "axios";
 function App() {
   const [text, setText] = useState("");
   const [summary, setSummary] = useState("");
+  const [loading, setLoading]=useState(false);
 
   const handleSummarize = async () => {
+    if (!text.trim()) return alert("Please enter text first!");
+    setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/summarize", { text });
+      const res = await axios.post
+        (`${import.meta.env.VITA_API_URL}/summarize`,{text});
       setSummary(res.data.summary);
     } catch (error) {
-      console.log(error);
+      console.log("Axios error:", error.response ? error.response.data : error.message);
       alert("Error summarizing text");
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -29,8 +35,8 @@ function App() {
 
       <br /><br />
 
-      <button onClick={handleSummarize}>
-        Summarize
+      <button onClick={handleSummarize} disabled={loading}>
+        {loading ? "Summarizing..." : "Summarize"}
       </button>
 
       <h3>Summary:</h3>
