@@ -22,7 +22,7 @@ const SummarySchema = new mongoose.Schema({
 
 const Summary = mongoose.model("Summary", SummarySchema);
 // Hugging Face client
-const hfClient = new HfInference(process.env.HF_API_KEY);
+const hfClient = new HfInference(process.env.HF_API_KEY,{ provider: "hf-inference" });
 
 // Route
 app.post("/summarize", async (req, res) => {
@@ -32,7 +32,11 @@ app.post("/summarize", async (req, res) => {
     // Call Hugging Face Inference API
    const hfResponse = await hfClient.summarization({
   model: "facebook/bart-large-cnn",
-  inputs: text
+  inputs: text,
+  parameters:{
+    max_length:150,
+    min_length:30
+  }
 });
     console.log("HF response:", hfResponse);
     // Hugging Face returns array with one result
