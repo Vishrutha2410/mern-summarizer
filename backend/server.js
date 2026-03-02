@@ -1,8 +1,8 @@
 const express =require("express");
 const mongoose=require ("mongoose");
 const cors=require("cors");
+const { InferenceClient } = require("@huggingface/inference");
 require("dotenv").config();
-const OpenAI=require("openai");
 
 const app = express();
 
@@ -21,34 +21,29 @@ const SummarySchema = new mongoose.Schema({
 });
 
 const Summary = mongoose.model("Summary", SummarySchema);
-
-//OpenAI client
-const openai=new OpenAI({
-  apiKey:process.env.OPENAI_API_KEY
-});
+// Hugging Face client
+const hfClient = new InferenceClient(process.env.HF_API_KEY);
 
 // Route
 app.post("/summarize", async (req, res) => {
   const { text } = req.body;
   if(!text) return res.status(400).json({error:"Text is required"});
   try{
-    //call openai api for summarization
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "You are a helpful assistant that summarizes text concisely." },
-        { role: "user", content: `Please summarize the following text:\n\n${text}` }
-      ],
-      temperature: 0.5,
-      max_tokens: 150
+    // Call Hugging Face Inference API
+    const hfResponse = await hfClient.summarization({
+      model: "facebook/bart-large-cnn",
+      inputs: text
     });
-  const summary = response.choices[0].message.content.trim();
 
-  const newSummary = new Summary({ text, summary });
-  await newSummary.save();
+    // Hugging Face returns array with one result
+    const summary = hfResponse[0]?.summary_text || "Unable to summarize";
 
-  res.json({ summary });
-}catch(error){
+    // Save to DB
+    const newSummary = new Summary({ text, summary });
+    await newSummary.save();
+
+    res.json({ summary });
+  }catch(error){
   console.error("Error summarizing:", error);
   res.status(500).json({error:"Failed to summarize text"});
 }
