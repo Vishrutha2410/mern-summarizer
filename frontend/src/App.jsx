@@ -11,7 +11,7 @@ function App() {
     setLoading(true);
     try {
       const res = await axios.post
-        (`${import.meta.env.VITA_API_URL}/summarize`,{text});
+        (`${import.meta.env.VITE_API_URL}/summarize`,{text});
       setSummary(res.data.summary);
     } catch (error) {
       console.log("Axios error:", error.response ? error.response.data : error.message);
