@@ -1,7 +1,7 @@
 const express =require("express");
 const mongoose=require ("mongoose");
 const cors=require("cors");
-const { InferenceClient } = require("@huggingface/inference");
+const { HfInference } = require("@huggingface/inference");
 require("dotenv").config();
 
 const app = express();
@@ -22,7 +22,7 @@ const SummarySchema = new mongoose.Schema({
 
 const Summary = mongoose.model("Summary", SummarySchema);
 // Hugging Face client
-const hfClient = new InferenceClient(process.env.HF_API_KEY);
+const hfClient = new HfInference(process.env.HF_API_KEY);
 
 // Route
 app.post("/summarize", async (req, res) => {
@@ -30,11 +30,11 @@ app.post("/summarize", async (req, res) => {
   if(!text) return res.status(400).json({error:"Text is required"});
   try{
     // Call Hugging Face Inference API
-    const hfResponse = await hfClient.summarization({
-      model: "facebook/bart-large-cnn",
-      inputs: text
-    });
-
+   const hfResponse = await hfClient.summarization({
+  model: "facebook/bart-large-cnn",
+  inputs: text
+});
+    console.log("HF response:", hfResponse);
     // Hugging Face returns array with one result
     const summary = hfResponse[0]?.summary_text || "Unable to summarize";
 
