@@ -1,11 +1,16 @@
 const express =require("express");
 const mongoose=require ("mongoose");
 const cors=require("cors");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { HfInference } = require("@huggingface/inference");
 require("dotenv").config();
 
-const app = express();
+const User = require("./models/User");
+const Summary = require("./models/Summary");
+const authMiddleware = require("./middleware/auth");
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 
@@ -16,6 +21,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Schema
 const SummarySchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   text: String,
   summary: String,
   createdAt: { type: Date, default: Date.now }
@@ -33,8 +39,61 @@ function chunkText(text, size = 1000) {
   }
   return chunks;
 }
+
+// REGISTER
+app.post("/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ error: "User already exists" });
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword
+    });
+
+    await newUser.save();
+    res.json({ message: "User registered successfully" });
+
+  } catch (err) {
+    res.status(500).json({ error: "Registration failed" });
+  }
+});
+
+// LOGIN
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(400).json({ error: "User not found" });
+
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword)
+      return res.status(400).json({ error: "Invalid password" });
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({ token, name: user.name });
+
+  } catch (err) {
+    res.status(500).json({ error: "Login failed" });
+  }
+});
+
 // Route
-app.post("/summarize", async (req, res) => {
+app.post("/summarize", authMiddleware, async (req, res) => {
   const { text } = req.body;
   if (!text || text.trim() === "") {return res.status(400).json({error:"Text is required"});}
   try{
@@ -50,21 +109,21 @@ app.post("/summarize", async (req, res) => {
     min_length:30
   }
 });
-   let chunkSummary;
-      if (Array.isArray(response)) {
-        chunkSummary = response[0]?.summary_text;
-      } else {
-        chunkSummary = response?.summary_text;
-      }
+   const chunkSummary = Array.isArray(response)
+        ? response[0]?.summary_text
+        : response?.summary_text;
 
       summaries.push(chunkSummary || "");
     }
 
-    // Combine all chunk summaries
-    const finalSummary = summaries.join(" ").trim() || "Unable to summarize";
+    const finalSummary = summaries.join(" ").trim();
 
-    // Save to MongoDB
-    const newSummary = new Summary({ text, summary: finalSummary });
+    const newSummary = new Summary({
+      userId: req.user.id,
+      text,
+      summary: finalSummary
+    });
+
     await newSummary.save();
 
     res.json({ summary: finalSummary });
@@ -80,6 +139,27 @@ app.post("/summarize", async (req, res) => {
     }
 }
 });
+
+app.get("/my-summaries", authMiddleware, async (req, res) => {
+  try {
+    const summaries = await Summary.find({ userId: req.user.id })
+      .sort({ createdAt: -1 });
+
+    res.json(summaries);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch summaries" });
+  }
+});
+
+app.delete("/summary/:id", authMiddleware, async (req, res) => {
+  try {
+    await Summary.findByIdAndDelete(req.params.id);
+    res.json({ message: "Summary deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Delete failed" });
+  }
+});
+
 app.listen(process.env.PORT || 5000, () => {
   console.log("Server running on port 5000 🚀");
 });
