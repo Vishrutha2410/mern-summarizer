@@ -19,15 +19,6 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected ✅"))
 .catch((err) => console.log(err));
 
-// Schema
-const SummarySchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  text: String,
-  summary: String,
-  createdAt: { type: Date, default: Date.now }
-});
-
-const Summary = mongoose.model("Summary", SummarySchema);
 // Initialize Hugging Face client
 const hfClient = new HfInference(process.env.HF_API_KEY);
 
