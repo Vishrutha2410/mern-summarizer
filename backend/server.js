@@ -36,12 +36,14 @@ app.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    if (!name || !email || !password)
+      return res.status(400).json({ error: "All fields required" });
+
     const existingUser = await User.findOne({ email });
     if (existingUser)
       return res.status(400).json({ error: "User already exists" });
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
       name,
@@ -50,9 +52,11 @@ app.post("/register", async (req, res) => {
     });
 
     await newUser.save();
-    res.json({ message: "User registered successfully" });
+
+    res.status(201).json({ message: "User registered successfully" });
 
   } catch (err) {
+    console.error("Register Error:", err);
     res.status(500).json({ error: "Registration failed" });
   }
 });
@@ -62,6 +66,9 @@ app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password)
+      return res.status(400).json({ error: "Email and password required" });
+
     const user = await User.findOne({ email });
     if (!user)
       return res.status(400).json({ error: "User not found" });
@@ -70,20 +77,27 @@ app.post("/login", async (req, res) => {
     if (!validPassword)
       return res.status(400).json({ error: "Invalid password" });
 
+    if (!process.env.JWT_SECRET)
+      return res.status(500).json({ error: "JWT_SECRET missing" });
+
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    res.json({ token, name: user.name });
+    res.json({
+      token,
+      name: user.name
+    });
 
   } catch (err) {
+    console.error("Login Error:", err);
     res.status(500).json({ error: "Login failed" });
   }
 });
 console.log("Auth middleware type:", typeof authMiddleware);
-// Route
+// Summarize
 app.post("/summarize", authMiddleware, async (req, res) => {
   const { text } = req.body;
   if (!text || text.trim() === "") {return res.status(400).json({error:"Text is required"});}
@@ -130,7 +144,7 @@ app.post("/summarize", authMiddleware, async (req, res) => {
     }
 }
 });
-
+//get user summarizes
 app.get("/my-summaries", authMiddleware, async (req, res) => {
   try {
     const summaries = await Summary.find({ userId: req.user.id })
@@ -141,7 +155,7 @@ app.get("/my-summaries", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch summaries" });
   }
 });
-
+//delete summary
 app.delete("/summary/:id", authMiddleware, async (req, res) => {
   try {
     await Summary.findByIdAndDelete(req.params.id);

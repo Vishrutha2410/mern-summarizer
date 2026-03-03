@@ -37,9 +37,9 @@ function Dashboard() {
         `${import.meta.env.VITE_API_URL}/summarize`,
         { text },
         {
-          headers: { Authorization: token }
+          headers: { Authorization: `Bearer ${localStorage.getItem("token") }`
         }
-      );
+    });
 
       setSummary(res.data.summary);
       fetchHistory();
