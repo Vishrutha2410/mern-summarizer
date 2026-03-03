@@ -7,12 +7,27 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* Default Route */}
+        <Route
+          path="/"
+          element={token ? <Navigate to="/dashboard" /> : <Login />}
+        />
+
+        {/* Register Route */}
+        <Route
+          path="/register"
+          element={token ? <Navigate to="/dashboard" /> : <Register />}
+        />
+
+        {/* Protected Dashboard */}
+        <Route
+          path="/dashboard"
+          element={token ? <Dashboard /> : <Navigate to="/" />}
+        />
       </Routes>
     </BrowserRouter>
   );
 }
+
 
 export default App;

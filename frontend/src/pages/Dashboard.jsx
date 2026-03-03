@@ -67,39 +67,92 @@ function Dashboard() {
     }
   };
 
-  return (
-    <div style={{ padding: "40px" }}>
-      <h1>🧠 Dashboard</h1>
+  const handleLogout = () => {
+  localStorage.removeItem("token");
+  window.location.href = "/login";
+};
 
+  return (
+    <div className="min-h-screen bg-gradient-to-r from-gray-900 to-black text-white p-10">
+
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold">🧠 AI Dashboard</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 hover:bg-red-600 px-5 py-2 rounded-xl transition duration-300"
+        >
+          Logout
+        </button>
+      </div>
+
+      {/* Textarea */}
       <textarea
-        rows="8"
-        cols="60"
+        rows="6"
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Enter text here..."
+        className="w-full p-4 rounded-xl bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
       />
 
-      <br /><br />
-
-      <button onClick={handleSummarize} disabled={loading}>
+      {/* Summarize Button */}
+      <button
+        onClick={handleSummarize}
+        disabled={loading}
+        className="mt-4 bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-xl transition duration-300"
+      >
         {loading ? "Summarizing..." : "Summarize"}
       </button>
+     
+      {/* Summary Card */}
+      {summary && (
+        <div className="mt-8 bg-gray-800 p-6 rounded-2xl shadow-lg">
+          <h3 className="text-xl font-semibold mb-4">Summary</h3>
+          <p className="text-gray-300">{summary}</p>
 
-      <h3>Summary:</h3>
-      <p>{summary}</p>
+          <div className="mt-4 flex gap-4">
+            <button
+              onClick={copyText}
+              className="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-xl transition"
+            >
+              Copy
+            </button>
 
-      <button onClick={copyText}>Copy</button>
-      <button onClick={downloadPDF}>Download PDF</button>
-
-      <h3>Previous Summaries:</h3>
-      {history.map((item) => (
-        <div key={item._id}>
-          <p>{item.summary}</p>
-          <button onClick={() => deleteSummary(item._id)}>
-            Delete
-          </button>
+            <button
+              onClick={downloadPDF}
+              className="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded-xl transition"
+            >
+              Download PDF
+            </button>
+          </div>
         </div>
-      ))}
+      )}
+
+      {/* History Section */}
+      <div className="mt-10">
+        <h3 className="text-xl font-semibold mb-4">Previous Summaries</h3>
+
+        {history.length === 0 ? (
+          <p className="text-gray-400">No summaries yet.</p>
+        ) : (
+          history.map((item) => (
+            <div
+              key={item._id}
+              className="bg-gray-800 p-5 rounded-2xl mb-4 shadow-md"
+            >
+              <p className="text-gray-300">{item.summary}</p>
+
+              <button
+                onClick={() => deleteSummary(item._id)}
+                className="mt-3 bg-red-500 hover:bg-red-600 px-4 py-1 rounded-lg transition"
+              >
+                Delete
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+
     </div>
   );
 }
