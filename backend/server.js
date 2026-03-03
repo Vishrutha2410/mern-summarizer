@@ -82,7 +82,7 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ error: "Login failed" });
   }
 });
-
+console.log("Auth middleware type:", typeof authMiddleware);
 // Route
 app.post("/summarize", authMiddleware, async (req, res) => {
   const { text } = req.body;
