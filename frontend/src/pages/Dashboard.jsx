@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../utils/api";
 import jsPDF from "jspdf";
 
@@ -66,10 +67,10 @@ function Dashboard() {
       console.log("Delete error:", err);
     }
   };
-
+  const navigate=useNavigate();
   const handleLogout = () => {
   localStorage.removeItem("token");
-  window.location.href = "/login";
+  navigate("/");
 };
 
   return (

@@ -2,10 +2,16 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import { useState, useEffect } from "react";
 
 function App() {
-  const token = localStorage.getItem("token");
-  
+  const [token, setToken] = useState(null);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    setToken(storedToken);
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
