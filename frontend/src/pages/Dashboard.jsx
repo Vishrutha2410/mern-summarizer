@@ -15,7 +15,7 @@ function Dashboard() {
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/my-summaries`,
         {
-          headers: { Authorization: token }
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         }
       );
       setHistory(res.data);
