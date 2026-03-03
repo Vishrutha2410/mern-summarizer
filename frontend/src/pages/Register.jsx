@@ -13,7 +13,7 @@ export default function Register() {
       await API.post("/register", { name, email, password });
       alert("Registered successfully");
       navigate("/");
-    } catch {
+    } catch(err) {
       alert("Registration failed");
     }
   };

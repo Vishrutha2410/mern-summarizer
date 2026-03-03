@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link} from "react-router-dom";
 import API from "../utils/api";
 
 export default function Login() {
@@ -24,6 +24,10 @@ export default function Login() {
       <input type="password" placeholder="Password"
         onChange={(e) => setPassword(e.target.value)} />
       <button onClick={handleLogin}>Login</button>
+      <p>
+        Don't have an account?{" "}
+        <Link to="/register">Register here</Link>
+      </p>
     </div>
   );
 }
