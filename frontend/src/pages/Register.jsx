@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import API from "../utils/api";
 import "./Register.css";
 
@@ -13,7 +13,7 @@ export default function Register() {
     try {
       await API.post("/register", { name, email, password });
       alert("Registered successfully");
-      navigate("/");
+      navigate("/login");
     } catch(err) {
       alert("Registration failed");
     }
@@ -24,6 +24,12 @@ export default function Register() {
     <div className="register-card">
       <h2 className="register-title">Create Account</h2>
 
+      <input
+          className="register-input"
+          placeholder="Name"
+          onChange={(e) => setName(e.target.value)}
+        />
+        
       <input
         className="register-input"
         placeholder="Email"
