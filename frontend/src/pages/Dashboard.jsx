@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../utils/api";
 import jsPDF from "jspdf";
 
-function Dashboard() {
+function Dashboard({setToken}) {
   const [text, setText] = useState("");
   const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
@@ -70,7 +70,8 @@ function Dashboard() {
   const navigate=useNavigate();
   const handleLogout = () => {
   localStorage.removeItem("token");
-  navigate("/");
+  setToken(null);
+  navigate("/login");
 };
 
   return (

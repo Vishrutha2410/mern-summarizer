@@ -1,41 +1,36 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useState } from "react";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import { useState, useEffect } from "react";
+import Register from "./pages/Register";
 
 function App() {
-  const [token, setToken] = useState(null);
-
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    setToken(storedToken);
-  }, []);
+  const [token, setToken] = useState(localStorage.getItem("token"));
 
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-        {/* Default Route */}
-        <Route
-          path="/"
-          element={token ? <Navigate to="/dashboard" /> : <Login />}
-        />
 
-        {/* Register Route */}
-        <Route
-          path="/register"
-          element={token ? <Navigate to="/dashboard" /> : <Register />}
-        />
+        <Route path="/login" element={<Login setToken={setToken} />} />
+        <Route path="/register" element={<Register />} />
 
-        {/* Protected Dashboard */}
         <Route
           path="/dashboard"
-          element={token ? <Dashboard /> : <Navigate to="/" />}
+          element={
+            token ? <Dashboard setToken={setToken} /> : <Navigate to="/login" />
+          }
         />
+
+        <Route
+          path="/"
+          element={
+            token ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+          }
+        />
+
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
-
 
 export default App;
