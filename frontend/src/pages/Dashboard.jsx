@@ -52,10 +52,26 @@ function Dashboard({setToken}) {
   const downloadPDF = () => {
     if (!summary) return alert("No summary to download!");
 
-    const doc = new jsPDF();
-    doc.text(summary, 10, 10);
-    doc.save("summary.pdf");
-  };
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 10;
+
+  // Wrap text to page width
+  const textLines = doc.splitTextToSize(summary, pageWidth - 2 * margin);
+
+  let y = 20; // start position
+
+  textLines.forEach((line, index) => {
+    if (y > 280) { // A4 page height approx 297mm, leave bottom margin
+      doc.addPage();
+      y = 20; // reset y for new page
+    }
+    doc.text(line, margin, y);
+    y += 10; // line height
+  });
+
+  doc.save("summary.pdf");
+};
 
 
   // ✅ Delete
